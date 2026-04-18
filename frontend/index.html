@@ -924,11 +924,11 @@ body::before {
 
 <!-- ─── NAV ─────────────────────────────────────── -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="showPage('dashboard')">📊 Dashboard</button>
-  <button class="nav-btn" onclick="showPage('map-page')">🗺️ Map Monitor</button>
-  <button class="nav-btn" onclick="showPage('detection')">🔍 AI Detection</button>
-  <button class="nav-btn" onclick="showPage('analytics')">📈 Analytics</button>
-  <button class="nav-btn" onclick="showPage('monuments-list')">🏛️ Monuments</button>
+  <button class="nav-btn active" onclick="showPage('dashboard', event)">📊 Dashboard</button>
+  <button class="nav-btn" onclick="showPage('map-page', event)">🗺️ Map Monitor</button>
+  <button class="nav-btn" onclick="showPage('detection', event)">🔍 AI Detection</button>
+  <button class="nav-btn" onclick="showPage('analytics', event)">📈 Analytics</button>
+  <button class="nav-btn" onclick="showPage('monuments-list', event)">🏛️ Monuments</button>
 </nav>
 
 <!-- ─── PAGES ─────────────────────────────────────── -->
@@ -1296,11 +1296,14 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // ─── PAGE ROUTING ─────────────────────────────────
-function showPage(id) {
+function showPage(id, event) {
+  if (event) {
+    if (event.preventDefault) event.preventDefault();
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (event && event.currentTarget) event.currentTarget.classList.add('active');
   if (id === 'map-page' && !map) initMap();
   if (id === 'analytics') initAnalytics();
   if (id === 'monuments-list') renderMonumentList();
@@ -1408,7 +1411,7 @@ function openPanel(id) {
     alertsEl.innerHTML = '<div style="color:var(--safe);font-size:12px">✅ No active alerts</div>';
   } else {
     alertsEl.innerHTML = m.alerts.map(a =>
-      `<div style="font-size:11px;color:var(--text-secondary);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px"><span style="color:var(--critical)">⚠</span>${a}</div>`
+      `<div style="font-size:11px;color:var(--text-secondary);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px"><span style="color:var(--critical)">ALERT</span>${a}</div>`
     ).join('');
   }
 
@@ -1558,13 +1561,10 @@ function loadDetection() {
   const id = document.getElementById('detectionSelect').value;
   const m = MONUMENTS.find(x => x.id === id);
   const data = DETECTION_DATA[id] || DETECTION_DATA['taj-mahal'];
-
-  const imgs = MONUMENT_IMGS[id] || {};
-  const fallback = `https://picsum.photos/seed/${id}/800/500`;
-
-  document.getElementById('detectionImg').src = imgs.satellite || fallback;
-  document.getElementById('beforeImg').src = imgs.before || `https://picsum.photos/seed/${id}before/800/520`;
-  document.getElementById('afterImg').src = imgs.after || `https://picsum.photos/seed/${id}after2025/800/520`;
+  const apiUrl = 'http://localhost:5000/api/satellite/planet/' + id;
+  document.getElementById('detectionImg').src = apiUrl;
+  document.getElementById('beforeImg').src = apiUrl + '?year=2022';
+  document.getElementById('afterImg').src = apiUrl;
 
   renderBBoxes(data.bboxes);
 
@@ -1572,10 +1572,10 @@ function loadDetection() {
   const regulated = data.zones.regulated;
 
   document.getElementById('zone-prohibited').innerHTML = prohibited
-    ? '<span class="badge critical">⚠ BREACHED</span>'
+    ? '<span class="badge critical">ANALYSIS: BREACHED</span>'
     : '<span class="badge safe">CLEAR</span>';
   document.getElementById('zone-regulated').innerHTML = regulated
-    ? '<span class="badge warning">⚠ BREACHED</span>'
+    ? '<span class="badge warning">ANALYSIS: BREACHED</span>'
     : '<span class="badge safe">CLEAR</span>';
 
   const riskScore = data.risk;
@@ -1711,7 +1711,7 @@ function generateReport(id) {
       <div class="report-finding"><span>Encroachment Detections (YOLOv8)</span><span><b>${m.detections.encroachment.count} structures detected</b></span></div>
       <div class="report-finding"><span>Vegetation Coverage (DeepLabV3+)</span><span><b>${m.detections.vegetation.coverage}% — ${m.detections.vegetation.type}</b></span></div>
       <div class="report-finding"><span>Structural Damage (Mask-RCNN)</span><span><b>${m.detections.structural.cracks} crack zones — ${m.detections.structural.severity} severity</b></span></div>
-      <div class="report-finding"><span>Satellite Change Detection (Siamese-UNet)</span><span><b>${data.changePercent}% area change (30-day)</b></span></div>
+      <div class="report-finding"><span>Change Anomaly vs 2022 Ref (Siamese-UNet)</span><span><b>${data.changePercent}% anomalous land change</b></span></div>
       <div class="report-finding"><span>NDVI Vegetation Index</span><span><b>${data.ndvi}</b></span></div>
 
       <div class="report-section-title">3. RISK ASSESSMENT</div>

@@ -6,9 +6,10 @@ import {
 } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
 
-import { getMonumentImage } from './imageConfig';
+import { getMonumentImage, getMonumentFallback } from './imageConfig';
 
 // ── Inline styles & theme ─────────────────────────────────────────────────────
 const T = {
@@ -296,20 +297,20 @@ const MonumentPanel = ({monument:m, onClose, inModal}) => {
         borderBottom:`1px solid ${T.border}`,
         position:'relative'
       }}>
-        <img
-          src={getMonumentImage(m.id, 'main')}
-          alt={m.name}
-          style={{
-            width:'100%',
-            height:'100%',
-            objectFit:'cover',
-            filter:'brightness(0.7) saturate(0.8)'
-          }}
-          onError={(e) => {
-            console.error("Image failed to load:", e.target.src);
-            e.target.src = 'https://picsum.photos/seed/fallback/800/500';
-          }}
-        />
+       <img
+  src={getMonumentImage(m.id, 'main')}
+  alt={m.name}
+  style={{
+    width:'100%',
+    height:'100%',
+    objectFit:'cover',
+    filter:'brightness(0.7) saturate(0.8)'
+  }}
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = getMonumentFallback(m.id);
+  }}
+/>
         <div style={{
           position:'absolute',
           bottom:0,left:0,right:0,
@@ -363,7 +364,7 @@ const MonumentPanel = ({monument:m, onClose, inModal}) => {
       {/* Encroachment Zone Info */}
       {m.detections.encroachment.detected && (
         <div style={{padding:'14px 20px',background:T.red+'0a',borderBottom:`1px solid ${T.border}`}}>
-          <div style={{fontFamily:T.fontMono,fontSize:11,color:T.red,letterSpacing:1,marginBottom:6}}>⚠ ENCROACHMENT ALERT</div>
+          <div style={{fontFamily:T.fontMono,fontSize:11,color:T.red,letterSpacing:1,marginBottom:6}}>ANALYSIS: ENCROACHMENT DETECTED</div>
           <div style={{fontSize:13,color:T.text}}>Structure detected at <strong style={{color:T.red}}>{m.detections.encroachment.distance}m</strong> from monument boundary</div>
           <div style={{marginTop:4,fontSize:12,color:T.textDim}}>Zone: <span style={{color:m.detections.encroachment.zone==='prohibited'?T.red:T.orange,textTransform:'uppercase',fontWeight:600}}>{m.detections.encroachment.zone}</span> (0–100m restricted, 100–300m regulated)</div>
         </div>
@@ -393,14 +394,16 @@ const DetectionPage = ({selectedMonument}) => {
   const [sliderVal, setSliderVal] = useState(50);
   const canvasRef = useRef(null);
 
-  const runDetection = useCallback(async ()=>{
+  const runDetection = useCallback(async (e)=>{
+    if (e && e.preventDefault) e.preventDefault();
     setRunning(true);
     setResult(null);
     try {
       // Call the real AI backend
       const res = await axios.post('http://localhost:8000/api/detect', {
         monument_id: monument.id,
-        detection_type: detType
+        detection_type: detType,
+        compare_year: detType === 'change' ? 2022 : undefined
       });
       setResult({
         ...res.data,
@@ -426,12 +429,10 @@ const DetectionPage = ({selectedMonument}) => {
     if(result.detected && result.bounding_boxes){
       const col = statusColor(monument.status);
       ctx.strokeStyle = col;
-      ctx.lineWidth = 2;
-      ctx.fillStyle = col+'33';
+      ctx.lineWidth = 3;
+      ctx.fillStyle = col+'44';
 
       result.bounding_boxes.forEach(b=>{
-        // The backend returns normalized coordinates 0-1, or we assume it might.
-        // Wait, in our Python backend we normalized by dividing by img_w, so they are 0.0 to 1.0!
         const x = b.x * canvas.width;
         const y = b.y * canvas.height;
         const w = b.width * canvas.width;
@@ -440,7 +441,7 @@ const DetectionPage = ({selectedMonument}) => {
         ctx.fillRect(x,y,w,h);
         ctx.strokeRect(x,y,w,h);
         ctx.fillStyle = col;
-        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.font = 'bold 12px JetBrains Mono, monospace';
         ctx.fillText(b.label+` ${(b.confidence*100).toFixed(0)}%`, x+4, y-6);
         ctx.fillStyle = col+'33';
       });
@@ -498,8 +499,9 @@ const DetectionPage = ({selectedMonument}) => {
                 alt={`${monument.name} satellite view`}
                 style={{width:'100%',display:'block',opacity:0.85,objectFit:'cover',height:350}}
                 onError={(e) => {
-                  e.target.src = getMonumentImage(monument.id, 'after');
-                }}
+  e.target.onerror = null;
+  e.target.src = getMonumentFallback(monument.id);
+}}
               />
               <canvas ref={canvasRef} width={700} height={350} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}/>
               {running && (
@@ -527,14 +529,14 @@ const DetectionPage = ({selectedMonument}) => {
                 src={getMonumentImage(monument.id, 'after')}
                 alt="after"
                 style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}
-                onError={(e) => { e.target.src = getMonumentImage(monument.id, 'main'); }}
+                onError={(e) => { e.target.onerror = null; e.target.src = getMonumentFallback(monument.id); }}
               />
               <div style={{position:'absolute',inset:0,overflow:'hidden',width:`${sliderVal}%`}}>
                 <img
                   src={getMonumentImage(monument.id, 'before')}
                   alt="before"
                   style={{width:`${10000/sliderVal}%`,maxWidth:'none',height:'100%',objectFit:'cover'}}
-                  onError={(e) => { e.target.src = getMonumentImage(monument.id, 'main'); }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = getMonumentFallback(monument.id); }}
                 />
               </div>
               <div style={{position:'absolute',top:0,bottom:0,left:`${sliderVal}%`,width:2,background:T.accent,transform:'translateX(-50%)'}}>
@@ -550,7 +552,7 @@ const DetectionPage = ({selectedMonument}) => {
           {result && (
             <div style={{background:result.detected?statusBg(monument.status):T.greenGlow,border:`1px solid ${result.detected?statusColor(monument.status):T.green}`,borderRadius:6,padding:16}}>
               <div style={{fontFamily:T.fontHead,fontSize:16,fontWeight:700,color:result.detected?statusColor(monument.status):T.green,marginBottom:8}}>
-                {result.detected ? `⚠ ${detTypes.find(d=>d.key===detType)?.label.toUpperCase()} DETECTED` : `✓ NO THREAT DETECTED`}
+                {result.detected ? `${detTypes.find(d=>d.key===detType)?.label.toUpperCase()} DETECTED` : `✓ NO THREAT DETECTED`}
               </div>
               <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
                 <div><span style={{fontFamily:T.fontMono,fontSize:10,color:T.textMuted}}>CONFIDENCE</span><div style={{fontFamily:T.fontMono,fontSize:18,color:T.text}}>{((result.confidence||0.95)*100).toFixed(1)}%</div></div>
@@ -580,6 +582,7 @@ const ReportsPage = ({selectedMonument}) => {
       const id = `ASI-${new Date().getFullYear()}-${Math.random().toString(36).slice(2,10).toUpperCase()}`;
       const issues = [];
       if(monument.detections.encroachment.detected) issues.push({type:'Encroachment',detail:`Structure at ${monument.detections.encroachment.distance}m (${monument.detections.encroachment.zone} zone)`,severity:'CRITICAL'});
+      if(monument.detections.change && monument.detections.change.detected) issues.push({type:'Change Anomaly',detail:`Detected significant land change vs 2022 reference data`,severity:'CRITICAL'});
       if(monument.detections.vegetation.detected) issues.push({type:'Vegetation Overgrowth',detail:`${monument.detections.vegetation.coverage}% — ${monument.detections.vegetation.type}`,severity:'WARNING'});
       if(monument.detections.structural.detected) issues.push({type:'Structural Damage',detail:`${monument.detections.structural.severity} — ${monument.detections.structural.cracks} crack sites`,severity:'CRITICAL'});
       if(monument.detections.vandalism.detected) issues.push({type:'Vandalism',detail:monument.detections.vandalism.type,severity:'WARNING'});

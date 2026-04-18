@@ -181,6 +181,10 @@ app.get('/api/satellite/planet/:id', async (req, res) => {
       monument.lat + delta
     ];
 
+    const year = req.query.year || new Date().getFullYear();
+    const startDate = `${year}-01-01T00:00:00Z`;
+    const endDate = `${year}-12-31T23:59:59Z`;
+
     const searchRequest = {
       item_types: ["PSScene"],
       filter: {
@@ -203,12 +207,15 @@ app.get('/api/satellite/planet/:id', async (req, res) => {
           {
             type: "DateRangeFilter",
             field_name: "acquired",
-            config: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() }
+            config: { 
+              gte: startDate,
+              lte: endDate
+            }
           },
           {
              type: "RangeFilter",
              field_name: "cloud_cover",
-             config: { lte: 0.2 } // Loosened to 20% clouds for better demo success
+             config: { lte: 0.2 }
           }
         ]
       }
