@@ -1,11 +1,19 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const monuments = require('./data/monuments');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static images from backend's public folder with explicit CORS
+app.use('/images', cors(), express.static(path.join(__dirname, 'public/images')));
+app.use('/images', cors(), express.static(path.join(__dirname, '../frontend/public/images'))); // Fallback to frontend public if needed
 
 // Stats endpoint
 app.get('/api/stats', (req, res) => {
@@ -143,6 +151,102 @@ app.get('/api/analytics', (req, res) => {
       encroachment: 38, vegetation: 27, structural: 21, vandalism: 9, other: 5
     }
   });
+});
+
+// Planet Labs Proxy Endpoint - Real Satellite Implementation
+app.get('/api/satellite/planet/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const monument = monuments.find(m => m.id === id);
+    if (!monument) return res.status(404).json({ error: 'Monument not found' });
+    
+    // Fallback if no API key is present
+    if (!process.env.PLANET_API_KEY) {
+       console.log(`[Satellite] Using local demo image fallback for ${id} (No API key)`);
+       const fallbackPath = path.join(__dirname, 'public/images/monuments', `${id}-after.jpg`);
+       const frontendFallback = path.join(__dirname, '../frontend/public/images/monuments', `${id}-after.jpg`);
+       
+       if (fs.existsSync(fallbackPath)) return res.sendFile(fallbackPath);
+       if (fs.existsSync(frontendFallback)) return res.sendFile(frontendFallback);
+       
+       return res.status(404).json({ error: 'Fallback image not found' });
+    }
+
+    // Build a tiny 0.005 degree bounding box around the monument coordinate (~500m)
+    const delta = 0.005;
+    const bbox = [
+      monument.lng - delta, 
+      monument.lat - delta, 
+      monument.lng + delta, 
+      monument.lat + delta
+    ];
+
+    const searchRequest = {
+      item_types: ["PSScene"],
+      filter: {
+        type: "AndFilter",
+        config: [
+          {
+            type: "GeometryFilter",
+            field_name: "geometry",
+            config: {
+              type: "Polygon",
+              coordinates: [[
+                [bbox[0], bbox[1]],
+                [bbox[2], bbox[1]],
+                [bbox[2], bbox[3]],
+                [bbox[0], bbox[3]],
+                [bbox[0], bbox[1]]
+              ]]
+            }
+          },
+          {
+            type: "DateRangeFilter",
+            field_name: "acquired",
+            config: { gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() }
+          },
+          {
+             type: "RangeFilter",
+             field_name: "cloud_cover",
+             config: { lte: 0.2 } // Loosened to 20% clouds for better demo success
+          }
+        ]
+      }
+    };
+
+    console.log(`[Satellite] Searching Planet imagery for ${monument.name}...`);
+    const response = await axios.post('https://api.planet.com/data/v1/quick-search', searchRequest, {
+      headers: {
+        'Authorization': `api-key ${process.env.PLANET_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const features = response.data.features;
+    if (!features || features.length === 0) {
+      console.warn(`[Satellite] No recent cloud-free imagery for ${monument.name}, falling back.`);
+      return res.status(404).json({ error: 'No recent satellite imagery found' });
+    }
+
+    const latestFeature = features[0];
+    const thumbnailUrl = latestFeature._links.thumbnail || latestFeature._links.self;
+
+    console.log(`[Satellite] Streaming ${monument.name} from: ${thumbnailUrl}`);
+    const imageResponse = await axios.get(thumbnailUrl, {
+      headers: { 'Authorization': `api-key ${process.env.PLANET_API_KEY}` },
+      responseType: 'stream'
+    });
+
+    // Pass through the content type and set explicit CORS for the stream
+    res.set('Content-Type', imageResponse.headers['content-type'] || 'image/png');
+    res.set('Access-Control-Allow-Origin', '*');
+    imageResponse.data.pipe(res);
+
+  } catch (error) {
+    console.error('Error fetching Planet imagery:', error.response?.data || error.message);
+    // Silent fallback to local image on total failure
+    res.status(500).json({ error: 'Failed to fetch satellite imagery' });
+  }
 });
 
 const PORT = process.env.PORT || 5000;

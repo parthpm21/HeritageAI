@@ -1501,14 +1501,70 @@ const DETECTION_DATA = {
   }
 };
 
+const MONUMENT_IMGS = {
+  'taj-mahal': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Taj_Mahal%2C_Agra%2C_India_edit3.jpg/1280px-Taj_Mahal%2C_Agra%2C_India_edit3.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Taj_Mahal%2C_Agra%2C_India_edit3.jpg/1280px-Taj_Mahal%2C_Agra%2C_India_edit3.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Taj_Mahal%2C_Agra%2C_India_edit3.jpg/1280px-Taj_Mahal%2C_Agra%2C_India_edit3.jpg'
+  },
+  'qutub-minar': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Qutb_Minar_at_sunset.jpg/1280px-Qutb_Minar_at_sunset.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Qutb_Minar_at_sunset.jpg/1280px-Qutb_Minar_at_sunset.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Qutb_Minar_at_sunset.jpg/1280px-Qutb_Minar_at_sunset.jpg'
+  },
+  'hampi': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Hampi_virupaksha_temple.jpg/1280px-Hampi_virupaksha_temple.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Hampi_virupaksha_temple.jpg/1280px-Hampi_virupaksha_temple.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Hampi_virupaksha_temple.jpg/1280px-Hampi_virupaksha_temple.jpg'
+  },
+  'konark-sun-temple': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg'
+  },
+  'ajanta-caves': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Ajanta_Caves%2C_India.jpg/1280px-Ajanta_Caves%2C_India.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Ajanta_Caves%2C_India.jpg/1280px-Ajanta_Caves%2C_India.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Ajanta_Caves%2C_India.jpg/1280px-Ajanta_Caves%2C_India.jpg'
+  },
+  'ellora-caves': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Kailasha_temple_ellora.jpg/1280px-Kailasha_temple_ellora.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Kailasha_temple_ellora.jpg/1280px-Kailasha_temple_ellora.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Kailasha_temple_ellora.jpg/1280px-Kailasha_temple_ellora.jpg'
+  },
+  'red-fort': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Red_Fort_in_New_Delhi_03-2016_img3.jpg/1280px-Red_Fort_in_New_Delhi_03-2016_img3.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Red_Fort_in_New_Delhi_03-2016_img3.jpg/1280px-Red_Fort_in_New_Delhi_03-2016_img3.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Red_Fort_in_New_Delhi_03-2016_img3.jpg/1280px-Red_Fort_in_New_Delhi_03-2016_img3.jpg'
+  },
+  'khajuraho': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg/1280px-Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg/1280px-Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg/1280px-Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg'
+  },
+  'fatehpur-sikri': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Buland_Darwaza_Fatehpur_Sikri.jpg/1280px-Buland_Darwaza_Fatehpur_Sikri.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Buland_Darwaza_Fatehpur_Sikri.jpg/1280px-Buland_Darwaza_Fatehpur_Sikri.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Buland_Darwaza_Fatehpur_Sikri.jpg/1280px-Buland_Darwaza_Fatehpur_Sikri.jpg'
+  },
+  'mahabalipuram': {
+    satellite: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Shore_Temple_Mahabalipuram.jpg/1280px-Shore_Temple_Mahabalipuram.jpg',
+    before: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Shore_Temple_Mahabalipuram.jpg/1280px-Shore_Temple_Mahabalipuram.jpg',
+    after:  'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Shore_Temple_Mahabalipuram.jpg/1280px-Shore_Temple_Mahabalipuram.jpg'
+  },
+};
+
 function loadDetection() {
   const id = document.getElementById('detectionSelect').value;
   const m = MONUMENTS.find(x => x.id === id);
   const data = DETECTION_DATA[id] || DETECTION_DATA['taj-mahal'];
 
-  document.getElementById('detectionImg').src = `https://picsum.photos/seed/${id}/800/500`;
-  document.getElementById('beforeImg').src = `https://picsum.photos/seed/${id}before/800/520`;
-  document.getElementById('afterImg').src = `https://picsum.photos/seed/${id}after2025/800/520`;
+  const imgs = MONUMENT_IMGS[id] || {};
+  const fallback = `https://picsum.photos/seed/${id}/800/500`;
+
+  document.getElementById('detectionImg').src = imgs.satellite || fallback;
+  document.getElementById('beforeImg').src = imgs.before || `https://picsum.photos/seed/${id}before/800/520`;
+  document.getElementById('afterImg').src = imgs.after || `https://picsum.photos/seed/${id}after2025/800/520`;
 
   renderBBoxes(data.bboxes);
 

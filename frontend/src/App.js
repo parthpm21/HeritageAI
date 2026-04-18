@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import axios from 'axios';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement,
   PointElement, ArcElement, Title, Tooltip, Legend, Filler
@@ -6,6 +7,8 @@ import {
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
+
+import { getMonumentImage } from './imageConfig';
 
 // ── Inline styles & theme ─────────────────────────────────────────────────────
 const T = {
@@ -29,7 +32,7 @@ const MONUMENTS = [
   { id:'taj-mahal', name:'Taj Mahal', state:'Uttar Pradesh', city:'Agra', lat:27.1751, lng:78.0421, status:'critical', riskScore:87, yearBuilt:1653, category:'World Heritage Site', description:'Iconic Mughal-era mausoleum, UNESCO World Heritage Site, symbol of India.', threats:['Encroachment','Air Pollution','Tourism Pressure'], detections:{ encroachment:{detected:true,distance:45,zone:'prohibited',confidence:0.94}, vegetation:{detected:true,coverage:12,type:'Moss & Algae',confidence:0.88}, structural:{detected:true,severity:'moderate',cracks:3,confidence:0.91}, vandalism:{detected:false,confidence:0.97} }, alerts:[{type:'encroachment',message:'Illegal construction 45m from boundary',severity:'critical',time:'2h ago'},{type:'vegetation',message:'Moss growth on north minaret',severity:'warning',time:'6h ago'}] },
   { id:'qutub-minar', name:'Qutub Minar', state:'Delhi', city:'New Delhi', lat:28.5244, lng:77.1855, status:'warning', riskScore:62, yearBuilt:1193, category:'World Heritage Site', description:'UNESCO-listed minaret complex, oldest mosque in India, 12th century Mamluk architecture.', threats:['Vegetation Overgrowth','Structural Fatigue','Urban Encroachment'], detections:{ encroachment:{detected:true,distance:180,zone:'regulated',confidence:0.86}, vegetation:{detected:true,coverage:23,type:'Weeds & Creepers',confidence:0.92}, structural:{detected:false,confidence:0.89}, vandalism:{detected:false,confidence:0.99} }, alerts:[{type:'vegetation',message:'Creeper growth on boundary walls',severity:'warning',time:'4h ago'}] },
   { id:'hampi', name:'Hampi Ruins', state:'Karnataka', city:'Hampi', lat:15.3350, lng:76.4600, status:'critical', riskScore:91, yearBuilt:1336, category:'World Heritage Site', description:'Vijayanagara Empire ruins across 4,100 hectares, UNESCO World Heritage Site.', threats:['Illegal Construction','Vegetation Damage','Structural Collapse'], detections:{ encroachment:{detected:true,distance:28,zone:'prohibited',confidence:0.97}, vegetation:{detected:true,coverage:45,type:'Trees & Shrubs',confidence:0.95}, structural:{detected:true,severity:'severe',cracks:12,confidence:0.93}, vandalism:{detected:true,type:'Graffiti',confidence:0.88} }, alerts:[{type:'encroachment',message:'New construction 28m from protected zone',severity:'critical',time:'30m ago'},{type:'structural',message:'12 cracks detected on Virupaksha Temple',severity:'critical',time:'3h ago'},{type:'vandalism',message:'Graffiti on eastern wall',severity:'warning',time:'12h ago'}] },
-  { id:'konark', name:'Konark Sun Temple', state:'Odisha', city:'Konark', lat:19.8876, lng:86.0945, status:'warning', riskScore:74, yearBuilt:1250, category:'World Heritage Site', description:'13th-century Sun Temple, UNESCO World Heritage Site, masterpiece of Kalinga architecture.', threats:['Coastal Erosion','Salt Damage','Vegetation'], detections:{ encroachment:{detected:false,confidence:0.95}, vegetation:{detected:true,coverage:18,type:'Coastal Weeds',confidence:0.90}, structural:{detected:true,severity:'moderate',cracks:7,confidence:0.87}, vandalism:{detected:false,confidence:0.98} }, alerts:[{type:'structural',message:'Salt crystallization damage on outer walls',severity:'warning',time:'8h ago'}] },
+  { id:'konark-sun-temple', name:'Konark Sun Temple', state:'Odisha', city:'Konark', lat:19.8876, lng:86.0945, status:'warning', riskScore:74, yearBuilt:1250, category:'World Heritage Site', description:'13th-century Sun Temple, UNESCO World Heritage Site, masterpiece of Kalinga architecture.', threats:['Coastal Erosion','Salt Damage','Vegetation'], detections:{ encroachment:{detected:false,confidence:0.95}, vegetation:{detected:true,coverage:18,type:'Coastal Weeds',confidence:0.90}, structural:{detected:true,severity:'moderate',cracks:7,confidence:0.87}, vandalism:{detected:false,confidence:0.98} }, alerts:[{type:'structural',message:'Salt crystallization damage on outer walls',severity:'warning',time:'8h ago'}] },
   { id:'ajanta-caves', name:'Ajanta Caves', state:'Maharashtra', city:'Aurangabad', lat:20.5519, lng:75.7033, status:'safe', riskScore:28, yearBuilt:200, category:'World Heritage Site', description:'2nd century BCE Buddhist cave monuments with exquisite paintings.', threats:['Humidity','Minor Vegetation'], detections:{ encroachment:{detected:false,confidence:0.99}, vegetation:{detected:true,coverage:8,type:'Moss',confidence:0.82}, structural:{detected:false,confidence:0.94}, vandalism:{detected:false,confidence:0.99} }, alerts:[] },
   { id:'red-fort', name:'Red Fort', state:'Delhi', city:'New Delhi', lat:28.6562, lng:77.2410, status:'warning', riskScore:55, yearBuilt:1648, category:'World Heritage Site', description:'Mughal Emperor Shah Jahan palace complex, UNESCO World Heritage Site.', threats:['Urban Pressure','Air Pollution'], detections:{ encroachment:{detected:true,distance:220,zone:'regulated',confidence:0.79}, vegetation:{detected:true,coverage:15,type:'Grass & Weeds',confidence:0.85}, structural:{detected:false,confidence:0.91}, vandalism:{detected:true,type:'Minor Graffiti',confidence:0.76} }, alerts:[{type:'vandalism',message:'Minor graffiti on inner boundary wall',severity:'warning',time:'5h ago'}] },
   { id:'khajuraho', name:'Khajuraho Temples', state:'Madhya Pradesh', city:'Khajuraho', lat:24.8318, lng:79.9199, status:'safe', riskScore:32, yearBuilt:950, category:'World Heritage Site', description:'Chandela dynasty temples with intricate sculptural artwork.', threats:['Minor Vegetation','Weathering'], detections:{ encroachment:{detected:false,confidence:0.97}, vegetation:{detected:true,coverage:11,type:'Lichen',confidence:0.84}, structural:{detected:false,confidence:0.93}, vandalism:{detected:false,confidence:0.99} }, alerts:[] },
@@ -285,7 +288,37 @@ const MonumentPanel = ({monument:m, onClose, inModal}) => {
 
   return (
     <div style={{fontFamily:T.fontBody}}>
-      {/* Header */}
+      {/* Photo Header */}
+      <div style={{
+        width:'100%',
+        height:160,
+        overflow:'hidden',
+        borderBottom:`1px solid ${T.border}`,
+        position:'relative'
+      }}>
+        <img
+          src={getMonumentImage(m.id, 'main')}
+          alt={m.name}
+          style={{
+            width:'100%',
+            height:'100%',
+            objectFit:'cover',
+            filter:'brightness(0.7) saturate(0.8)'
+          }}
+          onError={(e) => {
+            console.error("Image failed to load:", e.target.src);
+            e.target.src = 'https://picsum.photos/seed/fallback/800/500';
+          }}
+        />
+        <div style={{
+          position:'absolute',
+          bottom:0,left:0,right:0,
+          background:'linear-gradient(transparent, rgba(6,10,15,0.9))',
+          height:60
+        }}/>
+      </div>
+
+      {/* Header Info */}
       <div style={{background:col+'15',borderBottom:`1px solid ${T.border}`,padding:'16px 20px'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
           <div>
@@ -360,14 +393,27 @@ const DetectionPage = ({selectedMonument}) => {
   const [sliderVal, setSliderVal] = useState(50);
   const canvasRef = useRef(null);
 
-  const runDetection = useCallback(()=>{
+  const runDetection = useCallback(async ()=>{
     setRunning(true);
     setResult(null);
-    setTimeout(()=>{
+    try {
+      // Call the real AI backend
+      const res = await axios.post('http://localhost:8000/api/detect', {
+        monument_id: monument.id,
+        detection_type: detType
+      });
+      setResult({
+        ...res.data,
+        time: (res.data.processing_time_ms / 1000).toFixed(2) + 's',
+        model: res.data.model_name
+      });
+    } catch (err) {
+      console.error("AI Service Error:", err);
+      // Fallback if backend is down
       const d = monument.detections[detType] || {};
-      setResult({...d, model:['YOLOv8-Heritage','DeepLabV3+','Mask-RCNN','Siamese U-Net'][['encroachment','vegetation','structural','change'].indexOf(detType)]||'YOLOv8', time:(Math.random()*1.5+0.4).toFixed(2)+'s'});
-      setRunning(false);
-    },1800);
+      setResult({...d, model:'Fallback (Service Offline)', time:'0.00s', bounding_boxes:[], detected: false});
+    }
+    setRunning(false);
   },[monument,detType]);
 
   // Draw detection canvas
@@ -377,28 +423,29 @@ const DetectionPage = ({selectedMonument}) => {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    if(result.detected){
+    if(result.detected && result.bounding_boxes){
       const col = statusColor(monument.status);
-      // Draw bbox-style overlays
       ctx.strokeStyle = col;
       ctx.lineWidth = 2;
       ctx.fillStyle = col+'33';
 
-      const boxes = detType==='encroachment' ? [{x:40,y:30,w:180,h:130,label:'Illegal Structure'}] :
-                    detType==='vegetation' ? [{x:20,y:60,w:220,h:150,label:'Vegetation Zone'},{x:280,y:40,w:80,h:60,label:'Growth'}] :
-                    detType==='structural' ? [{x:130,y:80,w:100,h:80,label:'Crack Zone'}] :
-                    [{x:60,y:50,w:160,h:110,label:'Change Detected'}];
-
-      boxes.forEach(b=>{
-        ctx.fillRect(b.x,b.y,b.w,b.h);
-        ctx.strokeRect(b.x,b.y,b.w,b.h);
+      result.bounding_boxes.forEach(b=>{
+        // The backend returns normalized coordinates 0-1, or we assume it might.
+        // Wait, in our Python backend we normalized by dividing by img_w, so they are 0.0 to 1.0!
+        const x = b.x * canvas.width;
+        const y = b.y * canvas.height;
+        const w = b.width * canvas.width;
+        const h = b.height * canvas.height;
+        
+        ctx.fillRect(x,y,w,h);
+        ctx.strokeRect(x,y,w,h);
         ctx.fillStyle = col;
         ctx.font = 'bold 11px JetBrains Mono, monospace';
-        ctx.fillText(b.label+` ${(result.confidence*100).toFixed(0)}%`, b.x+4, b.y-6);
+        ctx.fillText(b.label+` ${(b.confidence*100).toFixed(0)}%`, x+4, y-6);
         ctx.fillStyle = col+'33';
       });
     }
-  },[result, detType, monument]);
+  },[result, monument]);
 
   const detTypes = [
     {key:'encroachment',label:'Encroachment Detection',model:'YOLOv8-Heritage'},
@@ -446,7 +493,14 @@ const DetectionPage = ({selectedMonument}) => {
               {result && <span style={{fontFamily:T.fontMono,fontSize:11,color:T.green}}>✓ Analysis complete in {result.time}</span>}
             </div>
             <div style={{position:'relative',borderRadius:4,overflow:'hidden',background:'#000'}}>
-              <img src={`https://picsum.photos/seed/${imgSeed}/700/350`} alt="satellite" style={{width:'100%',display:'block',opacity:0.8}}/>
+              <img
+                src={`${getMonumentImage(monument.id, 'satellite')}?t=${result ? result.timestamp : 'init'}`}
+                alt={`${monument.name} satellite view`}
+                style={{width:'100%',display:'block',opacity:0.85,objectFit:'cover',height:350}}
+                onError={(e) => {
+                  e.target.src = getMonumentImage(monument.id, 'after');
+                }}
+              />
               <canvas ref={canvasRef} width={700} height={350} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}/>
               {running && (
                 <div style={{position:'absolute',inset:0,background:'#000a',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12}}>
@@ -469,9 +523,19 @@ const DetectionPage = ({selectedMonument}) => {
           <div style={{background:T.bg1,border:`1px solid ${T.border}`,borderRadius:6,padding:16}}>
             <div style={{fontFamily:T.fontMono,fontSize:12,color:T.accent,marginBottom:10}}>CHANGE DETECTION · BEFORE / AFTER COMPARISON</div>
             <div style={{position:'relative',borderRadius:4,overflow:'hidden',height:200}}>
-              <img src={`https://picsum.photos/seed/${monument.id}-after/700/200`} alt="after" style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}/>
+              <img
+                src={getMonumentImage(monument.id, 'after')}
+                alt="after"
+                style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover'}}
+                onError={(e) => { e.target.src = getMonumentImage(monument.id, 'main'); }}
+              />
               <div style={{position:'absolute',inset:0,overflow:'hidden',width:`${sliderVal}%`}}>
-                <img src={`https://picsum.photos/seed/${monument.id}-before/700/200`} alt="before" style={{width:`${10000/sliderVal}%`,maxWidth:'none',height:'100%',objectFit:'cover'}}/>
+                <img
+                  src={getMonumentImage(monument.id, 'before')}
+                  alt="before"
+                  style={{width:`${10000/sliderVal}%`,maxWidth:'none',height:'100%',objectFit:'cover'}}
+                  onError={(e) => { e.target.src = getMonumentImage(monument.id, 'main'); }}
+                />
               </div>
               <div style={{position:'absolute',top:0,bottom:0,left:`${sliderVal}%`,width:2,background:T.accent,transform:'translateX(-50%)'}}>
                 <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:T.accent,borderRadius:'50%',width:20,height:20,cursor:'col-resize'}}/>
