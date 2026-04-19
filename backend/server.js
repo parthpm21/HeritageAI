@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Serve static images from backend's public folder with explicit CORS
 app.use('/images', cors(), express.static(path.join(__dirname, 'public/images')));
-app.use('/images', cors(), express.static(path.join(__dirname, '../frontend/public/images'))); // Fallback to frontend public if needed
+app.use('/images', cors(), express.static(path.join(__dirname, '../frontend/public/images')));
 
 // Stats endpoint
 app.get('/api/stats', (req, res) => {
@@ -153,140 +153,127 @@ app.get('/api/analytics', (req, res) => {
   });
 });
 
-// Planet Labs Proxy Endpoint - Real Satellite Implementation
+// ─── Satellite Imagery Endpoint ───────────────────────────────────────────────
+// Priority order for every request:
+//   1. Pre-downloaded Sentinel-2 file  (run download_sentinel2.py once)
+//   2. Planet Labs API                 (if PLANET_API_KEY is set in .env)
+//   3. ESRI World Imagery              (always available, no API key needed)
+//
+// ?year=2019  → "before" imagery  (serves {id}-before.jpg or Planet 2019 or ESRI)
+// no year     → "after"  imagery  (serves {id}-after.jpg  or ESRI current)
+// ─────────────────────────────────────────────────────────────────────────────
 app.get('/api/satellite/planet/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const monument = monuments.find(m => m.id === id);
-    if (!monument) return res.status(404).json({ error: 'Monument not found' });
-    
-    // Fallback if no API key is present
-    if (!process.env.PLANET_API_KEY) {
-       console.log(`[Satellite] Using local demo image fallback for ${id} (No API key)`);
-       const fallbackPath = path.join(__dirname, 'public/images/monuments', `${id}-after.jpg`);
-       const frontendFallback = path.join(__dirname, '../frontend/public/images/monuments', `${id}-after.jpg`);
-       
-       if (fs.existsSync(fallbackPath)) return res.sendFile(fallbackPath);
-       if (fs.existsSync(frontendFallback)) return res.sendFile(frontendFallback);
-       
-       return res.status(404).json({ error: 'Fallback image not found' });
-    }
+  const { id } = req.params;
+  const requestedYear = req.query.year ? parseInt(req.query.year) : null;
+  // Anything <= 2022 is treated as "before"; no year or current year = "after"
+  const isBefore = requestedYear && requestedYear <= 2022;
+  const suffix   = isBefore ? 'before' : 'after';
 
-    // Build a tighter 0.0015 degree bounding box around the monument coordinate (~330m) for human visibility
-    const delta = 0.0015;
-    const bbox = [
-      monument.lng - delta, 
-      monument.lat - delta, 
-      monument.lng + delta, 
-      monument.lat + delta
+  const monument = monuments.find(m => m.id === id);
+  if (!monument) return res.status(404).json({ error: 'Monument not found' });
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+  const tryLocalFile = (filename) => {
+    const candidates = [
+      path.join(__dirname, 'public', 'images', 'monuments', filename),
+      path.join(__dirname, '..', 'frontend', 'public', 'images', 'monuments', filename),
     ];
+    return candidates.find(p => fs.existsSync(p)) || null;
+  };
 
-    const year = req.query.year || new Date().getFullYear();
-    const isHistorical = req.query.year && req.query.year != new Date().getFullYear();
+  const buildEsriUrl = (lat, lng, delta = 0.012) => {
+    const b = [lng - delta, lat - delta, lng + delta, lat + delta];
+    return (
+      `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export` +
+      `?bbox=${b[0]},${b[1]},${b[2]},${b[3]}&bboxSR=4326&imageSR=4326` +
+      `&size=1024,1024&format=png&f=image`
+    );
+  };
 
-    if (!isHistorical) {
-        // Use beautiful, high-res ESRI ArcGIS World Imagery for current data (No API Key needed)
-        // This makes the monument highly understandable to the human eye
-        const esriUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}&bboxSR=4326&imageSR=4326&size=1024,1024&format=png&f=image`;
-        
-        console.log(`[Satellite] Streaming ultra-clear ESRI imagery for ${monument.name}`);
-        const imageResponse = await axios.get(esriUrl, { responseType: 'stream' });
-        
-        res.set('Content-Type', 'image/png');
-        res.set('Access-Control-Allow-Origin', '*');
-        return imageResponse.data.pipe(res);
-    }
-
-    // Historical fallback: Try Planet Labs for 2022
-    if (!process.env.PLANET_API_KEY) {
-       console.log(`[Satellite] No Planet API key for historical data, using fallback for ${monument.name}`);
-       if (fs.existsSync(frontendFallback)) return res.sendFile(frontendFallback);
-       return res.status(404).json({ error: 'Fallback image not found' });
-    }
-
-    const startDate = `${year}-01-01T00:00:00Z`;
-    const endDate = `${year}-12-31T23:59:59Z`;
-
-    const searchRequest = {
-      item_types: ["PSScene"],
-      filter: {
-        type: "AndFilter",
-        config: [
-          {
-            type: "GeometryFilter",
-            field_name: "geometry",
-            config: {
-              type: "Polygon",
-              coordinates: [[
-                [bbox[0], bbox[1]],
-                [bbox[2], bbox[1]],
-                [bbox[2], bbox[3]],
-                [bbox[0], bbox[3]],
-                [bbox[0], bbox[1]]
-              ]]
-            }
-          },
-          {
-            type: "DateRangeFilter",
-            field_name: "acquired",
-            config: { 
-              gte: startDate,
-              lte: endDate
-            }
-          },
-          {
-             type: "RangeFilter",
-             field_name: "cloud_cover",
-             config: { lte: 0.2 }
-          }
-        ]
-      }
-    };
-
-    console.log(`[Satellite] Searching historic Planet imagery for ${monument.name} (${year})...`);
-    const response = await axios.post('https://api.planet.com/data/v1/quick-search', searchRequest, {
-      headers: {
-        'Authorization': `api-key ${process.env.PLANET_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    const features = response.data.features;
-    if (!features || features.length === 0) {
-      console.warn(`[Satellite] No historical imagery for ${monument.name}, falling back.`);
-      if (fs.existsSync(frontendFallback)) return res.sendFile(frontendFallback);
-      return res.status(404).json({ error: 'No satellite imagery found' });
-    }
-
-    let thumbnailUrl = features[0]._links.thumbnail || features[0]._links.self;
-    if (thumbnailUrl.includes('?')) thumbnailUrl += '&width=1024'; else thumbnailUrl += '?width=1024';
-
-    console.log(`[Satellite] Streaming historical ${monument.name} from: ${thumbnailUrl}`);
-    const imageResponse = await axios.get(thumbnailUrl, {
-      headers: { 'Authorization': `api-key ${process.env.PLANET_API_KEY}` },
-      responseType: 'stream'
-    });
-
-    res.set('Content-Type', imageResponse.headers['content-type'] || 'image/png');
+  const streamUrl = async (url, contentType = 'image/png') => {
+    const r = await axios.get(url, { responseType: 'stream', timeout: 20000 });
+    res.set('Content-Type', contentType);
     res.set('Access-Control-Allow-Origin', '*');
-    imageResponse.data.pipe(res);
+    res.set('Cache-Control', 'public, max-age=86400');
+    r.data.pipe(res);
+  };
 
-  } catch (error) {
-    console.error(`Error fetching historical imagery (${error.message}). Planet API Key may be defunct. Falling back to aligned ESRI Satellite...`);
-    
-    // Instead of using local cache drawings, use the aligned ESRI satellite export as requested!
+  const sendLocalFile = (filePath) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cache-Control', 'public, max-age=86400');
+    return res.sendFile(filePath);
+  };
+
+  // ── 1. Pre-downloaded Sentinel-2 local file ───────────────────────────────
+  const localFile = tryLocalFile(`${id}-${suffix}.jpg`);
+  if (localFile) {
+    console.log(`[Satellite] ✓ Serving Sentinel-2 ${suffix} for ${id}`);
+    return sendLocalFile(localFile);
+  }
+
+  // ── 2. Planet Labs (historical only, requires PLANET_API_KEY) ─────────────
+  if (isBefore && process.env.PLANET_API_KEY) {
     try {
-        const esriUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}&bboxSR=4326&imageSR=4326&size=1024,1024&format=png&f=image`;
-        const fallbackResponse = await axios.get(esriUrl, { responseType: 'stream' });
-        res.set('Content-Type', 'image/png');
-        res.set('Access-Control-Allow-Origin', '*');
-        return fallbackResponse.data.pipe(res);
-    } catch(e) {
-        console.error('Total fallback failure', e.message);
-        const fallbackPath = path.join(__dirname, '..', 'frontend', 'public', 'images', 'monuments', `${req.params.id}-before.jpg`);
-        if (fs.existsSync(fallbackPath)) return res.sendFile(fallbackPath);
-        return res.status(500).json({ error: 'Failed to fetch any satellite imagery' });
+      const delta      = 0.0015;
+      const targetYear = requestedYear || 2019;
+      const b          = [
+        monument.lng - delta, monument.lat - delta,
+        monument.lng + delta, monument.lat + delta,
+      ];
+
+      const searchRequest = {
+        item_types: ['PSScene'],
+        filter: {
+          type: 'AndFilter',
+          config: [
+            {
+              type: 'GeometryFilter', field_name: 'geometry',
+              config: {
+                type: 'Polygon',
+                coordinates: [[[b[0],b[1]],[b[2],b[1]],[b[2],b[3]],[b[0],b[3]],[b[0],b[1]]]]
+              }
+            },
+            {
+              type: 'DateRangeFilter', field_name: 'acquired',
+              config: { gte: `${targetYear}-01-01T00:00:00Z`, lte: `${targetYear}-12-31T23:59:59Z` }
+            },
+            { type: 'RangeFilter', field_name: 'cloud_cover', config: { lte: 0.2 } }
+          ]
+        }
+      };
+
+      console.log(`[Satellite] Searching Planet for ${monument.name} (${targetYear})...`);
+      const searchRes = await axios.post(
+        'https://api.planet.com/data/v1/quick-search',
+        searchRequest,
+        { headers: { Authorization: `api-key ${process.env.PLANET_API_KEY}` }, timeout: 10000 }
+      );
+
+      const features = searchRes.data.features;
+      if (features && features.length > 0) {
+        let thumbUrl = features[0]._links.thumbnail;
+        thumbUrl += thumbUrl.includes('?') ? '&width=1024' : '?width=1024';
+        console.log(`[Satellite] ✓ Planet ${targetYear} imagery for ${monument.name}`);
+        await streamUrl(thumbUrl, 'image/png');
+        return;
+      }
+      console.warn(`[Satellite] Planet: no imagery found for ${monument.name} (${targetYear})`);
+    } catch (planetErr) {
+      console.warn(`[Satellite] Planet API error: ${planetErr.message}`);
     }
+  }
+
+  // ── 3. ESRI World Imagery — always available, no API key ─────────────────
+  // NOTE: ESRI shows current imagery for both before & after when no
+  // pre-downloaded Sentinel-2 files exist. Run download_sentinel2.py to
+  // get real 2019/2024 Sentinel-2 imagery with a 5-year gap.
+  try {
+    const esriUrl = buildEsriUrl(monument.lat, monument.lng);
+    console.log(`[Satellite] Using ESRI fallback for ${monument.name} (${suffix}). Run download_sentinel2.py for real Sentinel-2 imagery.`);
+    await streamUrl(esriUrl, 'image/png');
+  } catch (esriErr) {
+    console.error(`[Satellite] ESRI also failed for ${id}: ${esriErr.message}`);
+    res.status(500).json({ error: 'Failed to fetch satellite imagery' });
   }
 });
 

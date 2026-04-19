@@ -1,280 +1,95 @@
-// // frontend/src/imageConfig.js
-// // Central image configuration for all monuments
-
-// const BASE = 'http://localhost:5000';
-
-// export const MONUMENT_IMAGES = {
-//   'taj-mahal': {
-//     main:      `${BASE}/images/monuments/taj-mahal.jpg`,
-//     satellite: `${BASE}/api/satellite/planet/taj-mahal`,
-//     before:    `${BASE}/images/monuments/taj-mahal-before.jpg`,
-//     after:     `${BASE}/images/monuments/taj-mahal-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Taj_Mahal%2C_Agra%2C_India_edit3.jpg/1280px-Taj_Mahal%2C_Agra%2C_India_edit3.jpg',
-//   },
-//   'qutub-minar': {
-//     main:      `${BASE}/images/monuments/qutub-minar.jpg`,
-//     satellite: `${BASE}/api/satellite/planet/qutub-minar`,
-//     before:    `${BASE}/images/monuments/qutub-minar-before.jpg`,
-//     after:     `${BASE}/images/monuments/qutub-minar-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Qutb_Minar_at_sunset.jpg/1280px-Qutb_Minar_at_sunset.jpg',
-//   },
-//   'hampi': {
-//     main:      `${BASE}/images/monuments/hampi.jpg`,
-//     satellite: `${BASE}/api/satellite/planet/hampi`,
-//     before:    `${BASE}/images/monuments/hampi-before.jpg`,
-//     after:     `${BASE}/images/monuments/hampi-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Hampi_virupaksha_temple.jpg/1280px-Hampi_virupaksha_temple.jpg',
-//   },
-//   'konark': {
-//     main:      `${BASE}/images/monuments/konark.jpg`,
-//     satellite: `${BASE}/api/satellite/planet/konark`,
-//     before:    `${BASE}/images/monuments/konark-before.jpg`,
-//     after:     `${BASE}/images/monuments/konark-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg',
-//   },
-//   'konark-sun-temple': {
-//     main:      `${BASE}/images/monuments/konark.jpg`,
-//     satellite: `${BASE}/api/satellite/planet/konark-sun-temple`,
-//     before:    `${BASE}/images/monuments/konark-before.jpg`,
-//     after:     `${BASE}/images/monuments/konark-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg',
-//   },
-//   'ajanta-caves': {
-//     main:      `${BASE}/images/monuments/ajanta-caves.jpg`,
-//     satellite: `${BASE}/images/monuments/ajanta-caves-satellite.jpg`,
-//     before:    `${BASE}/images/monuments/ajanta-caves-before.jpg`,
-//     after:     `${BASE}/images/monuments/ajanta-caves-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Ajanta_Caves%2C_India.jpg/1280px-Ajanta_Caves%2C_India.jpg',
-//   },
-//   'ellora-caves': {
-//     main:      `${BASE}/images/monuments/ellora-caves.jpg`,
-//     satellite: `${BASE}/images/monuments/ellora-caves-satellite.jpg`,
-//     before:    `${BASE}/images/monuments/ellora-caves-before.jpg`,
-//     after:     `${BASE}/images/monuments/ellora-caves-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Kailasha_temple_ellora.jpg/1280px-Kailasha_temple_ellora.jpg',
-//   },
-//   'red-fort': {
-//     main:      `${BASE}/images/monuments/red-fort.jpg`,
-//     satellite: `${BASE}/images/monuments/red-fort-satellite.jpg`,
-//     before:    `${BASE}/images/monuments/red-fort-before.jpg`,
-//     after:     `${BASE}/images/monuments/red-fort-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Red_Fort_in_New_Delhi_03-2016_img3.jpg/1280px-Red_Fort_in_New_Delhi_03-2016_img3.jpg',
-//   },
-//   'khajuraho': {
-//     main:      `${BASE}/images/monuments/khajuraho.jpg`,
-//     satellite: `${BASE}/images/monuments/khajuraho-satellite.jpg`,
-//     before:    `${BASE}/images/monuments/khajuraho-before.jpg`,
-//     after:     `${BASE}/images/monuments/khajuraho-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg/1280px-Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg',
-//   },
-//   'fatehpur-sikri': {
-//     main:      `${BASE}/images/monuments/fatehpur-sikri.jpg`,
-//     satellite: `${BASE}/images/monuments/fatehpur-sikri-satellite.jpg`,
-//     before:    `${BASE}/images/monuments/fatehpur-sikri-before.jpg`,
-//     after:     `${BASE}/images/monuments/fatehpur-sikri-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Buland_Darwaza_Fatehpur_Sikri.jpg/1280px-Buland_Darwaza_Fatehpur_Sikri.jpg',
-//   },
-//   'mahabalipuram': {
-//     main:      `${BASE}/images/monuments/mahabalipuram.jpg`,
-//     satellite: `${BASE}/images/monuments/mahabalipuram-satellite.jpg`,
-//     before:    `${BASE}/images/monuments/mahabalipuram-before.jpg`,
-//     after:     `${BASE}/images/monuments/mahabalipuram-after.jpg`,
-//     fallback:  'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Shore_Temple_Mahabalipuram.jpg/1280px-Shore_Temple_Mahabalipuram.jpg',
-//   },
-// };
-
-// export function getMonumentImage(monumentId, type = 'main') {
-//   const config = MONUMENT_IMAGES[monumentId];
-  
-//   if (type === 'satellite') {
-//     return `http://localhost:5000/api/satellite/planet/${monumentId}`;
-//   }
-
-//   if (!config) {
-//     return `http://localhost:5000/images/monuments/${monumentId}.jpg`;
-//   }
-  
-//   const url = config[type] || config.fallback || config.main;
-//   return url;
-// }
-
-
-
 // frontend/src/imageConfig.js
-// Central image configuration for all monuments
-// Falls back to Wikipedia Commons images when local backend is unavailable
+// ALL images are real satellite imagery — no Wikipedia, no stock photos.
+//
+// Priority chain (handled by onError in App.js):
+//   1. Pre-downloaded Sentinel-2 file served by backend  (best — real S2 imagery)
+//   2. ESRI World Imagery via backend proxy               (good — live aerial)
+//   3. ESRI World Imagery direct URL                      (fallback if backend down)
+//
+// Run download_sentinel2.py once to populate before/after Sentinel-2 files.
 
 const BASE = 'http://localhost:5000';
 
-// Wikipedia Commons fallback images (always available, no backend needed)
-const WIKI = {
-  'taj-mahal':        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Taj_Mahal%2C_Agra%2C_India_edit3.jpg/1280px-Taj_Mahal%2C_Agra%2C_India_edit3.jpg',
-  'qutub-minar':      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Qutb_Minar_at_sunset.jpg/1280px-Qutb_Minar_at_sunset.jpg',
-  'hampi':            'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Hampi_virupaksha_temple.jpg/1280px-Hampi_virupaksha_temple.jpg',
-  'konark':           'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg',
-  'konark-sun-temple':'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Konarka_Temple.jpg/1280px-Konarka_Temple.jpg',
-  'ajanta-caves':     'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Ajanta_Caves%2C_India.jpg/1280px-Ajanta_Caves%2C_India.jpg',
-  'ellora-caves':     'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Kailasha_temple_ellora.jpg/1280px-Kailasha_temple_ellora.jpg',
-  'red-fort':         'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Red_Fort_in_New_Delhi_03-2016_img3.jpg/1280px-Red_Fort_in_New_Delhi_03-2016_img3.jpg',
-  'khajuraho':        'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg/1280px-Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg',
-  'fatehpur-sikri':   'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Buland_Darwaza_Fatehpur_Sikri.jpg/1280px-Buland_Darwaza_Fatehpur_Sikri.jpg',
-  'mahabalipuram':    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Shore_Temple_Mahabalipuram.jpg/1280px-Shore_Temple_Mahabalipuram.jpg',
-  'sanchi-stupa':     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Sanchi_Stupa_from_Eastern_gate.jpg/1280px-Sanchi_Stupa_from_Eastern_gate.jpg',
-  'charminar':        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Charminar_Hyderabad_1.jpg/1280px-Charminar_Hyderabad_1.jpg',
-  'hawa-mahal':       'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Hawa_Mahal%2C_Jaipur%2C_India.jpg/1280px-Hawa_Mahal%2C_Jaipur%2C_India.jpg',
-  'elephanta-caves':  'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Elephanta_Caves_-_trimurti.jpg/1280px-Elephanta_Caves_-_trimurti.jpg',
-  'rani-ki-vav':      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rani_ki_vav_03.jpg/1280px-Rani_ki_vav_03.jpg',
-  'brihadisvara-temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Brihadeeswarar_Temple_at_Thanjavur.jpg/1280px-Brihadeeswarar_Temple_at_Thanjavur.jpg',
-  'mysore-palace':    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Mysore_Palace_Morning.jpg/1280px-Mysore_Palace_Morning.jpg',
-  'sun-temple-modhera':'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Sun_Temple%2C_Modhera%2C_Gujarat.jpg/1280px-Sun_Temple%2C_Modhera%2C_Gujarat.jpg',
-  'gol-gumbaz':       'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Gol_Gumbaz_Bijapur.jpg/1280px-Gol_Gumbaz_Bijapur.jpg',
-  'nalanda-university':'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Nalanda_University_Ruins.jpg/1280px-Nalanda_University_Ruins.jpg',
-};
+// ESRI World Imagery direct URLs — used as final fallback if backend is down.
+// These are real satellite/aerial images centered on each monument.
+function esriDirectUrl(lat, lng, delta = 0.012) {
+  const b = [lng - delta, lat - delta, lng + delta, lat + delta];
+  return (
+    `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export` +
+    `?bbox=${b[0]},${b[1]},${b[2]},${b[3]}&bboxSR=4326&imageSR=4326` +
+    `&size=1024,1024&format=png&f=image`
+  );
+}
 
-// Slightly different seeds per type so before/after look visually distinct
-// while still being the real monument image
-const TYPE_VARIANTS = {
-  before: '?grayscale',   // not actually grayscale, but a different cache key
-  after:  '',
-  satellite: '',
-  main:   '',
-};
-
-export const MONUMENT_IMAGES = {
-  'taj-mahal': {
-    main:      WIKI['taj-mahal'],
-    satellite: `${BASE}/api/satellite/planet/taj-mahal`,
-    before:    `${BASE}/images/monuments/taj-mahal-before.jpg?cb=${Date.now()}`,
-    after:     `${BASE}/images/monuments/taj-mahal-after.jpg?cb=${Date.now()}`,
-    fallback:  WIKI['taj-mahal'],
-  },
-  'qutub-minar': {
-    main:      WIKI['qutub-minar'],
-    satellite: `${BASE}/api/satellite/planet/qutub-minar`,
-    before:    `${BASE}/images/monuments/qutub-minar-before.jpg`,
-    after:     `${BASE}/images/monuments/qutub-minar-after.jpg`,
-    fallback:  WIKI['qutub-minar'],
-  },
-  'hampi': {
-    main:      WIKI['hampi'],
-    satellite: `${BASE}/api/satellite/planet/hampi`,
-    before:    `${BASE}/images/monuments/hampi-before.jpg`,
-    after:     `${BASE}/images/monuments/hampi-after.jpg`,
-    fallback:  WIKI['hampi'],
-  },
-  'konark': {
-    main:      WIKI['konark'],
-    satellite: `${BASE}/api/satellite/planet/konark`,
-    before:    `${BASE}/images/monuments/konark-before.jpg`,
-    after:     `${BASE}/images/monuments/konark-after.jpg`,
-    fallback:  WIKI['konark'],
-  },
-  'konark-sun-temple': {
-    main:      WIKI['konark-sun-temple'],
-    satellite: `${BASE}/api/satellite/planet/konark-sun-temple`,
-    before:    `${BASE}/images/monuments/konark-before.jpg`,
-    after:     `${BASE}/images/monuments/konark-after.jpg`,
-    fallback:  WIKI['konark-sun-temple'],
-  },
-  'ajanta-caves': {
-    main:      WIKI['ajanta-caves'],
-    satellite: `${BASE}/images/monuments/ajanta-caves-satellite.jpg`,
-    before:    `${BASE}/images/monuments/ajanta-caves-before.jpg`,
-    after:     `${BASE}/images/monuments/ajanta-caves-after.jpg`,
-    fallback:  WIKI['ajanta-caves'],
-  },
-  'ellora-caves': {
-    main:      WIKI['ellora-caves'],
-    satellite: `${BASE}/images/monuments/ellora-caves-satellite.jpg`,
-    before:    `${BASE}/images/monuments/ellora-caves-before.jpg`,
-    after:     `${BASE}/images/monuments/ellora-caves-after.jpg`,
-    fallback:  WIKI['ellora-caves'],
-  },
-  'red-fort': {
-    main:      WIKI['red-fort'],
-    satellite: `${BASE}/images/monuments/red-fort-satellite.jpg`,
-    before:    `${BASE}/images/monuments/red-fort-before.jpg`,
-    after:     `${BASE}/images/monuments/red-fort-after.jpg`,
-    fallback:  WIKI['red-fort'],
-  },
-  'khajuraho': {
-    main:      WIKI['khajuraho'],
-    satellite: `${BASE}/images/monuments/khajuraho-satellite.jpg`,
-    before:    `${BASE}/images/monuments/khajuraho-before.jpg`,
-    after:     `${BASE}/images/monuments/khajuraho-after.jpg`,
-    fallback:  WIKI['khajuraho'],
-  },
-  'fatehpur-sikri': {
-    main:      WIKI['fatehpur-sikri'],
-    satellite: `${BASE}/images/monuments/fatehpur-sikri-satellite.jpg`,
-    before:    `${BASE}/images/monuments/fatehpur-sikri-before.jpg`,
-    after:     `${BASE}/images/monuments/fatehpur-sikri-after.jpg`,
-    fallback:  WIKI['fatehpur-sikri'],
-  },
-  'mahabalipuram': {
-    main:      WIKI['mahabalipuram'],
-    satellite: `${BASE}/images/monuments/mahabalipuram-satellite.jpg`,
-    before:    `${BASE}/images/monuments/mahabalipuram-before.jpg`,
-    after:     `${BASE}/images/monuments/mahabalipuram-after.jpg`,
-    fallback:  WIKI['mahabalipuram'],
-  },
-  'sanchi-stupa':     { main: WIKI['sanchi-stupa'], satellite: `${BASE}/api/satellite/planet/sanchi-stupa`, backup: WIKI['sanchi-stupa'] },
-  'charminar':        { main: WIKI['charminar'], satellite: `${BASE}/api/satellite/planet/charminar`, backup: WIKI['charminar'] },
-  'hawa-mahal':       { main: WIKI['hawa-mahal'], satellite: `${BASE}/api/satellite/planet/hawa-mahal`, backup: WIKI['hawa-mahal'] },
-  'elephanta-caves':  { main: WIKI['elephanta-caves'], satellite: `${BASE}/api/satellite/planet/elephanta-caves`, backup: WIKI['elephanta-caves'] },
-  'rani-ki-vav':      { main: WIKI['rani-ki-vav'], satellite: `${BASE}/api/satellite/planet/rani-ki-vav`, backup: WIKI['rani-ki-vav'] },
-  'brihadisvara-temple': { main: WIKI['brihadisvara-temple'], satellite: `${BASE}/api/satellite/planet/brihadisvara-temple`, backup: WIKI['brihadisvara-temple'] },
-  'mysore-palace':    { main: WIKI['mysore-palace'], satellite: `${BASE}/api/satellite/planet/mysore-palace`, backup: WIKI['mysore-palace'] },
-  'sun-temple-modhera':{ main: WIKI['sun-temple-modhera'], satellite: `${BASE}/api/satellite/planet/sun-temple-modhera`, backup: WIKI['sun-temple-modhera'] },
-  'gol-gumbaz':       { main: WIKI['gol-gumbaz'], satellite: `${BASE}/api/satellite/planet/gol-gumbaz`, backup: WIKI['gol-gumbaz'] },
-  'nalanda-university':{ main: WIKI['nalanda-university'], satellite: `${BASE}/api/satellite/planet/nalanda-university`, backup: WIKI['nalanda-university'] },
+// Monument coordinates for direct ESRI fallback
+const COORDS = {
+  'taj-mahal':            { lat: 27.1751, lng: 78.0421 },
+  'qutub-minar':          { lat: 28.5244, lng: 77.1855 },
+  'hampi':                { lat: 15.3350, lng: 76.4600 },
+  'konark-sun-temple':    { lat: 19.8876, lng: 86.0945 },
+  'ajanta-caves':         { lat: 20.5519, lng: 75.7033 },
+  'ellora-caves':         { lat: 20.0258, lng: 75.1780 },
+  'red-fort':             { lat: 28.6562, lng: 77.2410 },
+  'khajuraho':            { lat: 24.8318, lng: 79.9199 },
+  'fatehpur-sikri':       { lat: 27.0945, lng: 77.6679 },
+  'mahabalipuram':        { lat: 12.6269, lng: 80.1927 },
+  'sanchi-stupa':         { lat: 23.4792, lng: 77.7397 },
+  'charminar':            { lat: 17.3616, lng: 78.4747 },
+  'hawa-mahal':           { lat: 26.9239, lng: 75.8267 },
+  'elephanta-caves':      { lat: 18.9633, lng: 72.9315 },
+  'rani-ki-vav':          { lat: 23.8587, lng: 72.1012 },
+  'brihadisvara-temple':  { lat: 10.7828, lng: 79.1318 },
+  'mysore-palace':        { lat: 12.3052, lng: 76.6552 },
+  'sun-temple-modhera':   { lat: 23.5833, lng: 72.1333 },
+  'gol-gumbaz':           { lat: 16.8290, lng: 75.7360 },
+  'nalanda-university':   { lat: 25.1362, lng: 85.4452 },
 };
 
 /**
- * Returns the best available image URL for a monument.
+ * getMonumentImage
  *
- * Priority:
- *   1. For "satellite" type: try the Planet/backend proxy URL.
- *      The <img> onError handler in App.js will fall back to the wiki URL.
- *   2. For "before"/"after": try local backend first; fall back to wiki on error.
- *   3. For "main": always return the wiki URL directly (guaranteed to work).
+ * All types return satellite imagery:
  *
- * @param {string} monumentId
- * @param {'main'|'satellite'|'before'|'after'} type
- * @returns {string} image URL
+ * 'main'      → latest ESRI/Sentinel-2 via backend proxy (current aerial view)
+ * 'satellite' → same as main (current view, used in AI detection viewer)
+ * 'after'     → pre-downloaded Sentinel-2 2024 file via backend
+ * 'before'    → pre-downloaded Sentinel-2 2019 file via backend (?year=2019)
+ *
+ * onError handlers in App.js must call getMonumentFallback(id) which returns
+ * a direct ESRI URL that works without the backend.
  */
 export function getMonumentImage(monumentId, type = 'main') {
-  const wiki = WIKI[monumentId] || 'https://picsum.photos/seed/' + monumentId + '/800/500';
-  const config = MONUMENT_IMAGES[monumentId];
-
-  if (!config) {
-    // Unknown monument — always return something visible
-    return wiki;
-  }
-
   switch (type) {
     case 'main':
-      // Use wiki directly — always visible, no backend dependency
-      return wiki;
-
     case 'satellite':
-      // Try the backend Planet proxy; App.js onError falls back to wiki
+      // Current satellite view via backend (ESRI or Planet if key set)
+      return `${BASE}/api/satellite/planet/${monumentId}`;
+
+    case 'after':
+      // Pre-downloaded Sentinel-2 2024 (after), falls through to ESRI if not found
       return `${BASE}/api/satellite/planet/${monumentId}`;
 
     case 'before':
-      return `${BASE}/api/satellite/planet/${monumentId}?year=2022`;
-    case 'after':
-      return `${BASE}/api/satellite/planet/${monumentId}`;
+      // Pre-downloaded Sentinel-2 2019 (before, ~5 year gap)
+      return `${BASE}/api/satellite/planet/${monumentId}?year=2019`;
 
     default:
-      return wiki;
+      return `${BASE}/api/satellite/planet/${monumentId}`;
   }
 }
 
 /**
- * Returns the guaranteed-working Wikipedia fallback URL for a monument.
- * Use this directly in onError handlers.
+ * getMonumentFallback
+ *
+ * Used in every onError handler in App.js.
+ * Returns a direct ESRI World Imagery URL — real satellite imagery,
+ * works without any backend, no API key needed.
  */
 export function getMonumentFallback(monumentId) {
-  return WIKI[monumentId] || 'https://picsum.photos/seed/' + monumentId + '/800/500';
+  const coords = COORDS[monumentId];
+  if (coords) {
+    return esriDirectUrl(coords.lat, coords.lng);
+  }
+  // Generic India satellite view as last resort
+  return esriDirectUrl(20.5937, 78.9629, 5);
 }
