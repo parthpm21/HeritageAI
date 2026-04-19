@@ -1614,10 +1614,11 @@ function loadDetection() {
   const id = document.getElementById('detectionSelect').value;
   const m = MONUMENTS.find(x => x.id === id);
   const data = DETECTION_DATA[id] || DETECTION_DATA['taj-mahal'];
-  const apiUrl = 'http://localhost:5000/api/satellite/planet/' + id;
-  document.getElementById('detectionImg').src = apiUrl;
-  document.getElementById('beforeImg').src = apiUrl + '?year=2022';
-  document.getElementById('afterImg').src = apiUrl;
+  const cb = window.__IMG_CACHE || (window.__IMG_CACHE = Date.now().toString().slice(-5));
+  const apiUrl = `http://localhost:5000/api/satellite/planet/${id}`;
+  document.getElementById('detectionImg').src = `${apiUrl}?cb=${cb}`;
+  document.getElementById('beforeImg').src = `${apiUrl}?year=2019&cb=${cb}`;
+  document.getElementById('afterImg').src = `${apiUrl}?cb=${cb}`;
 
   renderBBoxes(data.bboxes);
 

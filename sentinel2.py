@@ -220,12 +220,12 @@ for monument in MONUMENTS:
     mid   = monument["id"]
     lat   = monument["lat"]
     lng   = monument["lng"]
-    print(f"\n▶  {mid}  ({lat}, {lng})")
+    print(f"\n[Monument] {mid}  ({lat}, {lng})")
 
     for label, year in [("before", BEFORE_YEAR), ("after", AFTER_YEAR)]:
         out_path = os.path.join(OUT_DIR, f"{mid}-{label}.jpg")
         if os.path.exists(out_path):
-            print(f"   ✓ {label} already exists, skipping")
+            print(f"   [SKIP] {label} already exists, skipping")
             continue
 
         img_bytes = None
@@ -239,7 +239,7 @@ for monument in MONUMENTS:
             print(f"   Found MPC scene: {date}  cloud={cloud}%")
             img_bytes = download_mpc_preview(feature, lat, lng)
             if img_bytes:
-                print(f"   ✓ Downloaded from MPC")
+                print(f"   [OK] Downloaded from MPC")
 
         # Step 2: Try Copernicus STAC thumbnail
         if not img_bytes:
@@ -251,23 +251,23 @@ for monument in MONUMENTS:
                 print(f"   Found Copernicus scene: {date}  cloud={cloud}%")
                 img_bytes = download_sentinel_thumbnail(feature2)
                 if img_bytes:
-                    print(f"   ✓ Downloaded from Copernicus STAC")
+                    print(f"   [OK] Downloaded from Copernicus STAC")
 
         # Step 3: ESRI fallback (same image for both, but at least it's real satellite)
         if not img_bytes:
             print(f"   Using ESRI World Imagery fallback...")
             img_bytes = get_esri_fallback(lat, lng)
             if img_bytes:
-                print(f"   ✓ Got ESRI fallback")
+                print(f"   [OK] Got ESRI fallback")
 
         if img_bytes:
             if save_jpg(img_bytes, out_path):
                 size_kb = os.path.getsize(out_path) // 1024
-                print(f"   ✓ Saved {label}: {out_path} ({size_kb} KB)")
+                print(f"   [OK] Saved {label}: {out_path} ({size_kb} KB)")
             else:
-                print(f"   ✗ Failed to save {label}")
+                print(f"   [FAIL] Failed to save {label}")
         else:
-            print(f"   ✗ Could not get any image for {label}")
+            print(f"   [FAIL] Could not get any image for {label}")
 
         time.sleep(1)  # be polite to the APIs
 

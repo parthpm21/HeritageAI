@@ -1,0 +1,72 @@
+{
+    "summary": {
+        "total_images": 18,
+        "timestamp": "2026-04-19 11:42:45",
+        "target_baseline": 0.7,
+        "overall_accuracy": 0.771
+    },
+    "models": {
+        "encroachment": {
+            "count": 18,
+            "avg_conf": 0.176,
+            "reliability": 0.158
+        },
+        "vegetation": {
+            "count": 28,
+            "avg_conf": 0.92,
+            "reliability": 0.99
+        },
+        "structural": {
+            "count": 153,
+            "avg_conf": 0.88,
+            "reliability": 0.968
+        },
+        "change": {
+            "count": 3,
+            "avg_conf": 0.88,
+            "reliability": 0.968
+        }
+    },
+    "monuments": {
+        "ajanta": {
+            "scans": 2,
+            "detected_threats": 0
+        },
+        "charminar": {
+            "scans": 1,
+            "detected_threats": 2
+        },
+        "ellora": {
+            "scans": 2,
+            "detected_threats": 0
+        },
+        "hampi": {
+            "scans": 3,
+            "detected_threats": 0
+        },
+        "hawa": {
+            "scans": 1,
+            "detected_threats": 2
+        },
+        "khajuraho": {
+            "scans": 2,
+            "detected_threats": 0
+        },
+        "mysore": {
+            "scans": 1,
+            "detected_threats": 0
+        },
+        "qutub": {
+            "scans": 2,
+            "detected_threats": 14
+        },
+        "red": {
+            "scans": 1,
+            "detected_threats": 0
+        },
+        "taj": {
+            "scans": 3,
+            "detected_threats": 0
+        }
+    }
+}
