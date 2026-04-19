@@ -86,8 +86,21 @@ const AlertItem = ({alert}) => {
 
 // ── DASHBOARD PAGE ────────────────────────────────────────────────────────────
 const DashboardPage = ({onSelectMonument}) => {
+  const totalCrit = MONUMENTS.filter(m=>m.status==='critical').length;
+  const totalWarn = MONUMENTS.filter(m=>m.status==='warning').length;
+  const totalSafe = MONUMENTS.filter(m=>m.status==='safe').length;
+  const totalAlerts = MONUMENTS.reduce((acc, m) => acc + (m.alerts?.length || 0), 0);
+  const healthScore = MONUMENTS.length > 0 ? ((totalSafe / MONUMENTS.length) * 100).toFixed(1) : 0;
+
   const [stats] = useState({
-    total:3691,active:58,health:98.4,detections:1247,critical:14,warning:31,safe:3646,reports:89
+    total: MONUMENTS.length,
+    active: totalAlerts,
+    health: healthScore,
+    detections: MONUMENTS.reduce((acc, m) => acc + (m.detections ? Object.keys(m.detections).length : 0), 0),
+    critical: totalCrit,
+    warning: totalWarn,
+    safe: totalSafe,
+    reports: MONUMENTS.length * 3
   });
   const [tick,setTick] = useState(0);
   useEffect(()=>{const i=setInterval(()=>setTick(t=>t+1),3000);return()=>clearInterval(i);},[]);
@@ -105,9 +118,18 @@ const DashboardPage = ({onSelectMonument}) => {
     ]
   };
 
+  let en=0, vg=0, st=0, va=0, ot=0;
+  MONUMENTS.forEach(m => {
+    if(m.detections?.encroachment?.count > 0 || m.detections?.encroachment?.detected) en++;
+    if(m.detections?.vegetation?.coverage > 0 || m.detections?.vegetation?.detected) vg++;
+    if(m.detections?.structural?.cracks > 0 || m.detections?.structural?.detected) st++;
+    if(m.alerts?.some(a=>a.severity==='critical')) va++;
+    else if(m.status === 'warning') ot++;
+  });
+
   const donutData = {
     labels:['Encroachment','Vegetation','Structural','Vandalism','Other'],
-    datasets:[{data:[38,27,21,9,5],backgroundColor:['#ff3b3b','#00e676','#ff8c00','#ffc947','#00d4ff'],borderWidth:0}]
+    datasets:[{data:[en||1, vg||1, st||1, va||0, ot||0],backgroundColor:['#ff3b3b','#00e676','#ff8c00','#ffc947','#00d4ff'],borderWidth:0}]
   };
 
   const lineData = {
@@ -191,6 +213,7 @@ const DashboardPage = ({onSelectMonument}) => {
 
 // ── MAP PAGE ──────────────────────────────────────────────────────────────────
 const MapPage = ({onSelectMonument, selectedMonument}) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -205,7 +228,10 @@ const MapPage = ({onSelectMonument, selectedMonument}) => {
       attributionControl:false,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+    L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    }).addTo(map);
 
     const makeIcon = (status) => {
       const col = statusColor(status);
@@ -229,6 +255,7 @@ const MapPage = ({onSelectMonument, selectedMonument}) => {
   const critCount = MONUMENTS.filter(m=>m.status==='critical').length;
   const warnCount = MONUMENTS.filter(m=>m.status==='warning').length;
   const safeCount = MONUMENTS.filter(m=>m.status==='safe').length;
+  const filteredSearch = searchQuery.trim() ? MONUMENTS.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.city.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
   return (
     <div style={{display:'flex',gap:0,height:'calc(100vh - 60px)'}}>
@@ -243,6 +270,24 @@ const MapPage = ({onSelectMonument, selectedMonument}) => {
               <span style={{fontFamily:T.fontMono,fontSize:11,color:c,marginLeft:'auto'}}>{n}</span>
             </div>
           ))}
+        </div>
+
+        <div style={{position:'absolute',top:20,left:'50%',transform:'translateX(-50%)',zIndex:1000,width:300}}>
+          <input 
+            value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} 
+            placeholder="Search ASI sites..." 
+            style={{width:'100%',padding:'10px 14px',borderRadius:searchQuery&&filteredSearch.length? '4px 4px 0 0' : 4,border:`1px solid ${T.border}`,background:T.bg1,color:T.text,fontFamily:T.fontBody,outline:'none',boxShadow:'0 4px 12px rgba(0,0,0,0.5)'}}
+          />
+          {searchQuery && filteredSearch.length > 0 && (
+            <div style={{background:T.bg1,border:`1px solid ${T.border}`,borderTop:'none',borderRadius:'0 0 4px 4px',maxHeight:200,overflowY:'auto',boxShadow:'0 4px 12px rgba(0,0,0,0.5)'}}>
+              {filteredSearch.map(m=>(
+                <div key={m.id} onClick={()=>{setSearchQuery(''); mapInstanceRef.current?.setView([m.lat,m.lng], 16); onSelectMonument(m);}} style={{padding:10,cursor:'pointer',borderBottom:`1px solid ${T.border}`}}>
+                  <div style={{fontFamily:T.fontBody,fontSize:13,color:T.text,fontWeight:600}}>{m.name}</div>
+                  <div style={{fontFamily:T.fontMono,fontSize:10,color:T.textMuted}}>{m.city}, {m.state}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div style={{position:'absolute',top:12,right:12,zIndex:1000,background:T.bg1+'ee',border:`1px solid ${T.border}`,borderRadius:6,padding:'10px 14px',maxWidth:200}}>
           <div style={{fontFamily:T.fontMono,fontSize:11,color:T.accent,letterSpacing:1}}>SATELLITE MODE</div>
@@ -543,8 +588,8 @@ const DetectionPage = ({selectedMonument}) => {
                 <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',background:T.accent,borderRadius:'50%',width:20,height:20,cursor:'col-resize'}}/>
               </div>
               <input type="range" min={0} max={100} value={sliderVal} onChange={e=>setSliderVal(e.target.value)} style={{position:'absolute',inset:0,width:'100%',opacity:0,cursor:'col-resize',height:'100%'}}/>
-              <div style={{position:'absolute',top:8,left:8,fontFamily:T.fontMono,fontSize:10,background:'#000a',color:T.textDim,padding:'2px 6px',borderRadius:2}}>BEFORE 2022</div>
-              <div style={{position:'absolute',top:8,right:8,fontFamily:T.fontMono,fontSize:10,background:'#000a',color:T.accent,padding:'2px 6px',borderRadius:2}}>AFTER 2024</div>
+              <div style={{position:'absolute',top:8,left:8,fontFamily:T.fontMono,fontSize:10,background:'#000a',color:T.accent,padding:'2px 6px',borderRadius:2}}>BEFORE 2022</div>
+              <div style={{position:'absolute',top:8,right:8,fontFamily:T.fontMono,fontSize:10,background:'#000a',color:T.accent,padding:'2px 6px',borderRadius:2}}>LATEST</div>
             </div>
           </div>
 
@@ -731,16 +776,16 @@ const ReportsPage = ({selectedMonument}) => {
 
 // ── ANALYTICS PAGE ────────────────────────────────────────────────────────────
 const AnalyticsPage = () => {
-  const stateData = [
-    {state:'Uttar Pradesh',monuments:743,critical:23,risk:72},
-    {state:'Karnataka',monuments:506,critical:31,risk:68},
-    {state:'Tamil Nadu',monuments:413,critical:18,risk:61},
-    {state:'Rajasthan',monuments:398,critical:14,risk:58},
-    {state:'Madhya Pradesh',monuments:312,critical:9,risk:49},
-    {state:'Maharashtra',monuments:287,critical:11,risk:52},
-    {state:'Odisha',monuments:241,critical:16,risk:64},
-    {state:'Delhi',monuments:174,critical:8,risk:55},
-  ];
+  const stateMap = {};
+  MONUMENTS.forEach(m => {
+    if(!stateMap[m.state]) stateMap[m.state] = {state: m.state, monuments: 0, critical: 0, riskSum: 0};
+    stateMap[m.state].monuments++;
+    if (m.status === 'critical') stateMap[m.state].critical++;
+    stateMap[m.state].riskSum += m.riskScore;
+  });
+  const stateData = Object.values(stateMap)
+    .map(s => ({...s, risk: Math.round(s.riskSum / s.monuments)}))
+    .sort((a,b) => b.monuments - a.monuments);
 
   const barState = {
     labels: stateData.map(d=>d.state),

@@ -1046,8 +1046,14 @@ body::before {
 <!-- ── PAGE: MAP ──────────────────────────────────── -->
 <div id="map-page" class="page">
   <div class="card" style="margin-bottom:16px">
-    <div class="card-header">
-      <span class="card-title">🗺️ India Heritage Monument Map</span>
+    <div class="card-header" style="flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="card-title">🗺️ India Heritage Monument Map</span>
+        <div style="position:relative; width:220px;">
+          <input type="text" id="mapSearch" placeholder="Search ASI sites..." style="width:100%; padding:6px 12px; border-radius:4px; border:1px solid var(--border); background:var(--bg1); color:var(--text); font-family:var(--font-body); outline:none;" onkeyup="filterMapSearch(this.value)">
+          <div id="mapSearchResults" style="display:none; position:absolute; top:32px; left:0; width:100%; background:var(--bg1); border:1px solid var(--border); border-radius:0 0 4px 4px; max-height:200px; overflow-y:auto; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.5);"></div>
+        </div>
+      </div>
       <div style="display:flex;gap:12px;font-size:11px">
         <span style="color:var(--critical)">● Critical</span>
         <span style="color:var(--warning)">● Warning</span>
@@ -1068,6 +1074,16 @@ body::before {
       <option value="hampi">Hampi Ruins</option>
       <option value="konark-sun-temple">Konark Sun Temple</option>
       <option value="mahabalipuram">Mahabalipuram Monuments</option>
+      <option value="sanchi-stupa">Sanchi Stupa</option>
+      <option value="charminar">Charminar</option>
+      <option value="hawa-mahal">Hawa Mahal</option>
+      <option value="elephanta-caves">Elephanta Caves</option>
+      <option value="rani-ki-vav">Rani ki Vav</option>
+      <option value="brihadisvara-temple">Brihadisvara Temple</option>
+      <option value="mysore-palace">Mysore Palace</option>
+      <option value="sun-temple-modhera">Sun Temple Modhera</option>
+      <option value="gol-gumbaz">Gol Gumbaz</option>
+      <option value="nalanda-university">Nalanda Ruins</option>
     </select>
     <button class="btn btn-primary" onclick="runScan()">🤖 Run AI Scan</button>
   </div>
@@ -1102,8 +1118,8 @@ body::before {
             <img id="afterImg" src="https://picsum.photos/seed/after1/800/520" alt="After" style="height:260px" />
           </div>
           <div class="split-divider" id="splitDivider"></div>
-          <span class="split-label before">2023</span>
-          <span class="split-label after">2025 (Current)</span>
+          <span class="split-label before">2022</span>
+          <span class="split-label after">Latest</span>
         </div>
         <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">Drag divider to compare satellite imagery</div>
       </div>
@@ -1271,7 +1287,17 @@ const MONUMENTS = [
   { id:"ajanta-caves", name:"Ajanta Caves", state:"Maharashtra", city:"Aurangabad", lat:20.5519, lng:75.7033, type:"Buddhist Rock-cut Architecture", built:"2nd c. BCE – 5th c. CE", status:"safe", riskScore:28, alerts:[], detections:{ encroachment:{count:0}, vegetation:{coverage:3.4, type:"Forest undergrowth"}, structural:{cracks:0, severity:"none"}, unauthorized:{distance:null} } },
   { id:"ellora-caves", name:"Ellora Caves", state:"Maharashtra", city:"Aurangabad", lat:20.0258, lng:75.1794, type:"Rock-cut Architecture", built:"6th–11th century CE", status:"safe", riskScore:41, alerts:["Minor vegetation on facade"], detections:{ encroachment:{count:0}, vegetation:{coverage:9.2, type:"Rock-face lichens"}, structural:{cracks:1, severity:"minor"}, unauthorized:{distance:null} } },
   { id:"fatehpur-sikri", name:"Fatehpur Sikri", state:"Uttar Pradesh", city:"Agra", lat:27.0945, lng:77.6679, type:"Mughal Architecture", built:"1571–1585", status:"warning", riskScore:55, alerts:["Encroachment in regulated zone","Sandstone weathering detected — N facade"], detections:{ encroachment:{count:2}, vegetation:{coverage:11.6, type:"Scrub vegetation"}, structural:{cracks:2, severity:"moderate"}, unauthorized:{distance:210} } },
-  { id:"mahabalipuram", name:"Mahabalipuram Monuments", state:"Tamil Nadu", city:"Mahabalipuram", lat:12.6269, lng:80.1927, type:"Pallava Architecture", built:"7th–8th century CE", status:"critical", riskScore:78, alerts:["Coastal erosion risk HIGH","Salt corrosion accelerating — Shore Temple","Unauthorized fishing structures 90m S"], detections:{ encroachment:{count:3}, vegetation:{coverage:15.8, type:"Coastal shrubs"}, structural:{cracks:5, severity:"severe"}, unauthorized:{distance:90} } }
+  { id:"mahabalipuram", name:"Mahabalipuram Monuments", state:"Tamil Nadu", city:"Mahabalipuram", lat:12.6269, lng:80.1927, type:"Pallava Architecture", built:"7th–8th century CE", status:"critical", riskScore:78, alerts:["Coastal erosion risk HIGH","Salt corrosion accelerating — Shore Temple","Unauthorized fishing structures 90m S"], detections:{ encroachment:{count:3}, vegetation:{coverage:15.8, type:"Coastal shrubs"}, structural:{cracks:5, severity:"severe"}, unauthorized:{distance:90} } },
+  { id:"sanchi-stupa", name:"Sanchi Stupa", state:"Madhya Pradesh", city:"Sanchi", lat:23.4792, lng:77.7397, type:"Buddhist Monument", built:"3rd c. BCE", status:"warning", riskScore:55, alerts:["Mild Cracking in Northern Gateway"], detections:{ encroachment:{count:0}, vegetation:{coverage:5.0, type:"Moss"}, structural:{cracks:2, severity:"low"}, unauthorized:{distance:null} } },
+  { id:"charminar", name:"Charminar", state:"Telangana", city:"Hyderabad", lat:17.3616, lng:78.4747, type:"Mosque and Monument", built:"1591", status:"critical", riskScore:82, alerts:["Heavy Traffic Vibrations"], detections:{ encroachment:{count:2}, vegetation:{coverage:2.0, type:"None"}, structural:{cracks:6, severity:"moderate"}, unauthorized:{distance:5} } },
+  { id:"hawa-mahal", name:"Hawa Mahal", state:"Rajasthan", city:"Jaipur", lat:26.9239, lng:75.8267, type:"Palace", built:"1799", status:"safe", riskScore:30, alerts:[], detections:{ encroachment:{count:0}, vegetation:{coverage:0, type:"None"}, structural:{cracks:0, severity:"none"}, unauthorized:{distance:null} } },
+  { id:"elephanta-caves", name:"Elephanta Caves", state:"Maharashtra", city:"Mumbai", lat:18.9633, lng:72.9315, type:"Rock-cut Caves", built:"5th–7th century CE", status:"warning", riskScore:65, alerts:["Cave Erosion and Humidity Damage"], detections:{ encroachment:{count:0}, vegetation:{coverage:8.0, type:"Moss"}, structural:{cracks:1, severity:"low"}, unauthorized:{distance:null} } },
+  { id:"rani-ki-vav", name:"Rani ki Vav", state:"Gujarat", city:"Patan", lat:23.8587, lng:72.1012, type:"Stepwell", built:"11th century", status:"safe", riskScore:20, alerts:[], detections:{ encroachment:{count:0}, vegetation:{coverage:0, type:"None"}, structural:{cracks:0, severity:"none"}, unauthorized:{distance:null} } },
+  { id:"brihadisvara-temple", name:"Brihadisvara Temple", state:"Tamil Nadu", city:"Thanjavur", lat:10.7828, lng:79.1318, type:"Hindu Temple", built:"1010 CE", status:"safe", riskScore:15, alerts:[], detections:{ encroachment:{count:0}, vegetation:{coverage:0, type:"None"}, structural:{cracks:0, severity:"none"}, unauthorized:{distance:null} } },
+  { id:"mysore-palace", name:"Mysore Palace", state:"Karnataka", city:"Mysore", lat:12.3052, lng:76.6552, type:"Palace", built:"1912", status:"warning", riskScore:45, alerts:["Roof Leakage Detected"], detections:{ encroachment:{count:0}, vegetation:{coverage:0, type:"None"}, structural:{cracks:2, severity:"moderate"}, unauthorized:{distance:null} } },
+  { id:"sun-temple-modhera", name:"Sun Temple", state:"Gujarat", city:"Modhera", lat:23.5833, lng:72.1333, type:"Hindu Temple", built:"1026 CE", status:"safe", riskScore:25, alerts:[], detections:{ encroachment:{count:0}, vegetation:{coverage:2.0, type:"Grass"}, structural:{cracks:0, severity:"none"}, unauthorized:{distance:null} } },
+  { id:"gol-gumbaz", name:"Gol Gumbaz", state:"Karnataka", city:"Vijayapura", lat:16.8290, lng:75.7360, type:"Mausoleum", built:"1656", status:"warning", riskScore:50, alerts:["Acoustic Dome Stress"], detections:{ encroachment:{count:0}, vegetation:{coverage:0, type:"None"}, structural:{cracks:1, severity:"low"}, unauthorized:{distance:null} } },
+  { id:"nalanda-university", name:"Nalanda Ruins", state:"Bihar", city:"Nalanda", lat:25.1362, lng:85.4452, type:"Ancient University", built:"5th century CE", status:"critical", riskScore:78, alerts:["Vegetation Overgrowth on brick foundations"], detections:{ encroachment:{count:0}, vegetation:{coverage:35.0, type:"Bushes"}, structural:{cracks:15, severity:"moderate"}, unauthorized:{distance:null} } }
 ];
 
 const INCIDENTS = [
@@ -1317,8 +1343,16 @@ function loadStats() {
   document.getElementById('s-critical').textContent = critical;
   document.getElementById('s-warning').textContent = warning;
   document.getElementById('s-safe').textContent = safe;
-  document.getElementById('s-detect').textContent = '1,284';
-  document.getElementById('s-coverage').textContent = '94.2%';
+  document.getElementById('s-total').textContent = MONUMENTS.length;
+  
+  let detectSum = 0;
+  MONUMENTS.forEach(m => {
+    detectSum += m.detections?.encroachment?.count || (m.detections?.encroachment?.detected ? 1 : 0);
+    detectSum += m.detections?.structural?.cracks || (m.detections?.structural?.detected ? 1 : 0);
+    detectSum += 1;
+  });
+  document.getElementById('s-detect').textContent = detectSum;
+  document.getElementById('s-coverage').textContent = '100%';
 }
 
 // ─── INCIDENT FEED ────────────────────────────────
@@ -1367,8 +1401,10 @@ function initDashboardCharts() {
 // ─── MAP ──────────────────────────────────────────
 function initMap() {
   map = L.map('map').setView([20.5937, 78.9629], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:'© OpenStreetMap contributors'
+  L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: 'Google Maps'
   }).addTo(map);
 
   const colors = { critical:'#ff4444', warning:'#ffaa00', safe:'#00cc66' };
@@ -1389,6 +1425,23 @@ function initMap() {
 
     marker.on('click', () => openPanel(m.id));
   });
+}
+
+// ─── SEARCH ─────────────────────────────────────────
+function filterMapSearch(val) {
+  const res = document.getElementById('mapSearchResults');
+  if(!val.trim()) { res.style.display='none'; return; }
+  const matches = MONUMENTS.filter(m => m.name.toLowerCase().includes(val.toLowerCase()) || m.city.toLowerCase().includes(val.toLowerCase()));
+  if(matches.length === 0) { res.style.display='none'; return; }
+  res.style.display = 'block';
+  res.innerHTML = matches.map(m => `<div style="padding:10px; cursor:pointer; border-bottom:1px solid var(--border);" onclick="selectMapSearch('${m.id}')">${m.name}<div style="font-size:10px;color:var(--text-muted)">${m.city}, ${m.state}</div></div>`).join('');
+}
+function selectMapSearch(id) {
+  const m = MONUMENTS.find(x => x.id === id);
+  document.getElementById('mapSearch').value = m.name;
+  document.getElementById('mapSearchResults').style.display='none';
+  map.setView([m.lat, m.lng], 16);
+  openPanel(id);
 }
 
 // ─── PANEL ────────────────────────────────────────

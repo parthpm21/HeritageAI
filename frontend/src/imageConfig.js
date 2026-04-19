@@ -119,6 +119,16 @@ const WIKI = {
   'khajuraho':        'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg/1280px-Kandariya_Mahadeva_Temple%2C_Khajuraho.jpg',
   'fatehpur-sikri':   'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Buland_Darwaza_Fatehpur_Sikri.jpg/1280px-Buland_Darwaza_Fatehpur_Sikri.jpg',
   'mahabalipuram':    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Shore_Temple_Mahabalipuram.jpg/1280px-Shore_Temple_Mahabalipuram.jpg',
+  'sanchi-stupa':     'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Sanchi_Stupa_from_Eastern_gate.jpg/1280px-Sanchi_Stupa_from_Eastern_gate.jpg',
+  'charminar':        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Charminar_Hyderabad_1.jpg/1280px-Charminar_Hyderabad_1.jpg',
+  'hawa-mahal':       'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Hawa_Mahal%2C_Jaipur%2C_India.jpg/1280px-Hawa_Mahal%2C_Jaipur%2C_India.jpg',
+  'elephanta-caves':  'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Elephanta_Caves_-_trimurti.jpg/1280px-Elephanta_Caves_-_trimurti.jpg',
+  'rani-ki-vav':      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rani_ki_vav_03.jpg/1280px-Rani_ki_vav_03.jpg',
+  'brihadisvara-temple': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Brihadeeswarar_Temple_at_Thanjavur.jpg/1280px-Brihadeeswarar_Temple_at_Thanjavur.jpg',
+  'mysore-palace':    'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Mysore_Palace_Morning.jpg/1280px-Mysore_Palace_Morning.jpg',
+  'sun-temple-modhera':'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Sun_Temple%2C_Modhera%2C_Gujarat.jpg/1280px-Sun_Temple%2C_Modhera%2C_Gujarat.jpg',
+  'gol-gumbaz':       'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Gol_Gumbaz_Bijapur.jpg/1280px-Gol_Gumbaz_Bijapur.jpg',
+  'nalanda-university':'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Nalanda_University_Ruins.jpg/1280px-Nalanda_University_Ruins.jpg',
 };
 
 // Slightly different seeds per type so before/after look visually distinct
@@ -134,8 +144,8 @@ export const MONUMENT_IMAGES = {
   'taj-mahal': {
     main:      WIKI['taj-mahal'],
     satellite: `${BASE}/api/satellite/planet/taj-mahal`,
-    before:    `${BASE}/images/monuments/taj-mahal-before.jpg`,
-    after:     `${BASE}/images/monuments/taj-mahal-after.jpg`,
+    before:    `${BASE}/images/monuments/taj-mahal-before.jpg?cb=${Date.now()}`,
+    after:     `${BASE}/images/monuments/taj-mahal-after.jpg?cb=${Date.now()}`,
     fallback:  WIKI['taj-mahal'],
   },
   'qutub-minar': {
@@ -208,6 +218,16 @@ export const MONUMENT_IMAGES = {
     after:     `${BASE}/images/monuments/mahabalipuram-after.jpg`,
     fallback:  WIKI['mahabalipuram'],
   },
+  'sanchi-stupa':     { main: WIKI['sanchi-stupa'], satellite: `${BASE}/api/satellite/planet/sanchi-stupa`, backup: WIKI['sanchi-stupa'] },
+  'charminar':        { main: WIKI['charminar'], satellite: `${BASE}/api/satellite/planet/charminar`, backup: WIKI['charminar'] },
+  'hawa-mahal':       { main: WIKI['hawa-mahal'], satellite: `${BASE}/api/satellite/planet/hawa-mahal`, backup: WIKI['hawa-mahal'] },
+  'elephanta-caves':  { main: WIKI['elephanta-caves'], satellite: `${BASE}/api/satellite/planet/elephanta-caves`, backup: WIKI['elephanta-caves'] },
+  'rani-ki-vav':      { main: WIKI['rani-ki-vav'], satellite: `${BASE}/api/satellite/planet/rani-ki-vav`, backup: WIKI['rani-ki-vav'] },
+  'brihadisvara-temple': { main: WIKI['brihadisvara-temple'], satellite: `${BASE}/api/satellite/planet/brihadisvara-temple`, backup: WIKI['brihadisvara-temple'] },
+  'mysore-palace':    { main: WIKI['mysore-palace'], satellite: `${BASE}/api/satellite/planet/mysore-palace`, backup: WIKI['mysore-palace'] },
+  'sun-temple-modhera':{ main: WIKI['sun-temple-modhera'], satellite: `${BASE}/api/satellite/planet/sun-temple-modhera`, backup: WIKI['sun-temple-modhera'] },
+  'gol-gumbaz':       { main: WIKI['gol-gumbaz'], satellite: `${BASE}/api/satellite/planet/gol-gumbaz`, backup: WIKI['gol-gumbaz'] },
+  'nalanda-university':{ main: WIKI['nalanda-university'], satellite: `${BASE}/api/satellite/planet/nalanda-university`, backup: WIKI['nalanda-university'] },
 };
 
 /**
